@@ -1,0 +1,59 @@
+/* Progressive fallback used only when JavaScript is disabled. */
+.pre,
+.cur {
+  display: none !important;
+}
+
+.cover {
+  clip-path: none !important;
+  cursor: pointer !important;
+}
+
+.th {
+  cursor: pointer !important;
+}
+
+@media (max-width: 720px) {
+  .mbtn {
+    display: none !important;
+  }
+
+  .nav {
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    transform: none;
+    border-radius: 0;
+    padding: 10px 16px;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 0 4px;
+  }
+
+  .brand {
+    width: 100%;
+    margin: 0 0 4px;
+  }
+
+  .nav .ml {
+    display: flex !important;
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 2px;
+    padding: 0;
+  }
+
+  .nav a.l {
+    font-size: 15px;
+    padding: 8px 10px;
+  }
+
+  .nav a.cta {
+    margin: 0;
+    padding: 8px 14px;
+    font-size: 15px;
+    text-align: center;
+  }
+}
