@@ -356,7 +356,7 @@ function initAnimations() {
   });
 
   gsap.set('.ch', { yPercent: 115, rotate: 6 });
-  gsap.set('.kick,.hb,.nav', { opacity: 0, y: 30 });
+  gsap.set('.kick,.hb,.nav,.photo-card', { opacity: 0, y: 30 });
 
   /* preloader -> intro */
   const counterElement = $('#cnt');
@@ -380,7 +380,7 @@ function initAnimations() {
     }, '-=.2')
     .to('.ch', { yPercent: 0, rotate: 0, duration: 1.4, ease: 'expo.out', stagger: 0.035 }, '-=.7')
     .add(restoreHeroText)
-    .to('.kick,.hb', { opacity: 1, y: 0, duration: 1.1, ease: 'power3.out', stagger: 0.15 }, '-=1')
+    .to('.kick,.hb,.photo-card', { opacity: 1, y: 0, duration: 1.1, ease: 'power3.out', stagger: 0.15 }, '-=1')
     .to('.nav', { opacity: 1, y: 0, duration: 1, ease: 'power3.out' }, '-=.8');
 
   /* hero scroll-away */
