@@ -168,4 +168,19 @@ h1,h2,h3{font-family:var(--d);margin:0;font-weight:800;letter-spacing:-.045em;li
 .js [data-r]{opacity:0;transform:translateY(50px)}
 @media(max-width:980px){.pc,.xp,.about-g{grid-template-columns:1fr;gap:34px}.pcopy{position:static}.sg{grid-template-columns:1fr 1fr}.hb{flex-direction:column;align-items:flex-start}}
 @media(max-width:720px){.wrap{width:calc(100% - 40px)}.nav{width:calc(100% - 28px);top:12px;padding:6px 6px 6px 18px;flex-wrap:wrap;justify-content:space-between;border-radius:26px}.mbtn{display:block}.brand{margin:0}.nav .ml{display:none;width:100%;flex-direction:column;padding:8px 0}.nav.open .ml{display:flex}.nav a.l{font-size:17px;padding:13px 10px}.nav a.cta{margin:8px 0 4px;text-align:center}.sg{grid-template-columns:1fr}.sk{min-height:0}.sk .sk-title{margin-top:26px}.thumbs{gap:8px}#lp,#ln{top:auto;bottom:9vh}.fact{flex-direction:column;gap:4px}.fact strong{text-align:left}}
+/* ===== Mobile-only hero corrections (max-width:767px). Desktop and tablet (>=768px) are untouched. ===== */
+@media(max-width:767px){
+  /* Stack the composition: heading full-width first, photo card centered below */
+  .hero{padding:118px 0 84px}
+  .hero-top{flex-direction:column;align-items:stretch;gap:26px}
+  /* Responsive heading: fits 320px viewports, keeps bold weight + gradient */
+  .hero h1{font-size:clamp(58px,19.5vw,110px)}
+  /* Photo card: fully visible, centered, keeps object-fit:cover from base rule */
+  .photo-card{width:min(76vw,320px);margin-inline:auto}
+  .kick{margin-bottom:24px;font-size:14px}
+  .hb{margin-top:42px}
+  /* Buttons: full-width stacked, always inside the viewport */
+  .acts{width:100%}
+  .acts .btn{flex:1 1 100%;justify-content:center;text-align:center;padding:15px 18px}
+}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition-duration:.01ms!important}.pre{display:none}.js [data-r]{opacity:1;transform:none}.cover{clip-path:none}.big .w{opacity:1}}
