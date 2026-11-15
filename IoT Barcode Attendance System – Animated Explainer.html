@@ -1,0 +1,201 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>IoT-Based Barcode Attendance System – Explainer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+:root{color-scheme:dark}
+html,body{height:100%;margin:0;background:#04070d;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;color:#fff;overflow:hidden}
+#w{position:absolute;inset:0 0 56px 0;display:flex;align-items:center;justify-content:center;padding-top:env(safe-area-inset-top,0px)}
+#st{width:1920px;height:1080px;flex:none;position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,#14234a,#0a1020 70%)}
+svg.s{position:absolute;inset:0;width:1920px;height:1080px;opacity:0}
+.fl{stroke-dasharray:10 10;animation:mv 1s linear infinite}@keyframes mv{to{stroke-dashoffset:-20}}
+#cap{position:absolute;left:0;right:0;bottom:34px;text-align:center;font-size:34px;font-weight:600;color:#e2e8f0;text-shadow:0 2px 12px #000;letter-spacing:.3px}
+#bar{position:fixed;left:0;right:0;bottom:0;height:56px;padding-bottom:env(safe-area-inset-bottom,0px);display:flex;gap:12px;align-items:center;background:#0b1220;padding:0 14px;box-sizing:border-box}
+#bar button{background:#1e3a6e;color:#fff;border:0;border-radius:8px;padding:8px 14px;font-size:14px;cursor:pointer}
+#bar input{flex:1}#tm{font:13px ui-monospace,monospace;color:#94a3b8;min-width:90px}
+#go{position:fixed;inset:0;background:#05080fdd;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;z-index:9}
+#go button{font-size:22px;padding:16px 34px;border-radius:12px;border:0;background:#22d3ee;color:#04121c;font-weight:700;cursor:pointer}
+#go p{color:#94a3b8;margin:0;font-size:14px}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<filter id="gl" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+<marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#22d3ee"/></marker></defs></svg>
+<div id="w"><div id="st">
+<svg class="s" id="s1" viewBox="0 0 1920 1080"></svg><svg class="s" id="s2" viewBox="0 0 1920 1080"></svg><svg class="s" id="s3" viewBox="0 0 1920 1080"></svg><svg class="s" id="s4" viewBox="0 0 1920 1080"></svg><svg class="s" id="s5" viewBox="0 0 1920 1080"></svg><svg class="s" id="s6" viewBox="0 0 1920 1080"></svg><svg class="s" id="s7" viewBox="0 0 1920 1080"></svg><svg class="s" id="s8" viewBox="0 0 1920 1080"></svg>
+<div id="cap"></div></div></div>
+<div id="bar"><button id="pp">Pause</button><button id="sn">Sound: on</button><input type="range" id="sl" min="0" max="1000" value="0"><span id="tm">0:00 / 1:45</span></div>
+<div id="go"><button>▶ Play Explainer</button><p>~105 seconds · sound recommended · drag the bar to scrub</p></div>
+<script>
+const $=s=>document.querySelector(s),NS='http://www.w3.org/2000/svg',MONO='font-family="ui-monospace,Menlo,Consolas,monospace"';
+const tx=(x,y,t,o={})=>`<text x="${x}" y="${y}" font-size="${o.s||36}" fill="${o.c||'#fff'}" text-anchor="${o.a||'middle'}" font-weight="${o.w||700}" ${o.m?MONO:''} ${o.id?`id="${o.id}"`:''} ${o.k?`class="${o.k}"`:''} ${o.o!=null?`opacity="${o.o}"`:''}>${t}</text>`;
+const rc=(x,y,w,h,f,s,o={})=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${o.r??12}" fill="${f}" ${s?`stroke="${s}" stroke-width="${o.sw||2}"`:''} ${o.id?`id="${o.id}"`:''} ${o.k?`class="${o.k}"`:''} ${o.o!=null?`opacity="${o.o}"`:''}/>`;
+const el=(sid,h)=>{const s=$('#'+sid);s.insertAdjacentHTML('beforeend',h);return s.lastElementChild};
+const tl=gsap.timeline({paused:true,onUpdate:upd});
+/* ---------- audio ---------- */
+let ac,snd=true,pg;
+function initAudio(){if(ac)return;ac=new(window.AudioContext||webkitAudioContext)();pg=ac.createGain();pg.connect(ac.destination);const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=500;lp.connect(pg);
+[110,165,220,277.2].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.type='triangle';o.frequency.value=f;g.gain.value=.025;const l=ac.createOscillator(),lg=ac.createGain();l.frequency.value=.1+i*.07;lg.gain.value=.015;l.connect(lg).connect(g.gain);o.connect(g).connect(lp);o.start();l.start()});aud()}
+function aud(){if(pg)pg.gain.value=(snd&&!tl.paused())?1:0}
+function bp(f,d=.12,ty='sine',v=.06,f2){if(!snd||tl.paused()||!ac)return;const t=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();o.type=ty;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+d);g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g).connect(ac.destination);o.start();o.stop(t+d)}
+/* ---------- helpers ---------- */
+function pk(sid,pts,t,d,col='#22d3ee',lab=''){const g=el(sid,`<g opacity="0"><circle r="13" fill="${col}" filter="url(#gl)"/>${lab?tx(0,-26,lab,{s:20,c:col,m:1}):''}</g>`);const n=pts.length-1;tl.set(g,{opacity:1,x:pts[0][0],y:pts[0][1]},t).call(bp,[900,.07,'sine',.05,1700],null,t);for(let i=1;i<=n;i++)tl.to(g,{x:pts[i][0],y:pts[i][1],duration:d/n,ease:'power1.inOut'},t+d/n*(i-1));tl.to(g,{opacity:0,duration:.25},t+d)}
+function wf(sid,x,y,rot,t,rep=3){const g=el(sid,`<g transform="translate(${x},${y}) rotate(${rot})">${[34,60,86].map(r=>`<path class="w" opacity="0" d="M${-r*.7} ${-r*.7}A${r} ${r} 0 0 1 ${r*.7} ${-r*.7}" fill="none" stroke="#22d3ee" stroke-width="6" stroke-linecap="round"/>`).join('')}</g>`);tl.fromTo(g.children,{opacity:0},{opacity:1,duration:.35,stagger:.2,repeat:rep,yoyo:true},t)}
+function show(sel,t,d=.6,from={y:30}){tl.from(sel,{opacity:0,...from,duration:d,ease:'power3.out'},t)}
+const bc=(x,y,h,c)=>{let s='',p=x;for(let i=0;i<40;i++){const b=(i*7%4)+2;if(i%2==0)s+=`<rect x="${p}" y="${y}" width="${b}" height="${h}" fill="${c}"/>`;p+=b+(i%3?1:2)}return s};
+const esp=(id,sc=1)=>`<g id="${id}"><g transform="scale(${sc})"><rect x="-150" y="-90" width="300" height="180" rx="14" fill="#0f172a" stroke="#22d3ee" stroke-width="3"/>${rc(-100,-62,140,96,'#1e293b','#475569',{r:6})}${tx(-30,0,'ESP32',{s:30,c:'#e2e8f0',w:800})}${rc(66,-70,64,34,'#334155',0,{r:4})}<path d="M-130-90v-30h90v30" fill="none" stroke="#22d3ee" stroke-width="3"/>${[...Array(8)].map((_,i)=>rc(-132+i*36,76,10,28,'#fbbf24',0,{r:2})).join('')}<circle cx="120" cy="50" r="6" fill="#22d3ee"/></g></g>`;
+const phone=(id,inner='')=>`<g id="${id}"><rect x="-80" y="-150" width="160" height="300" rx="26" fill="#0b1224" stroke="#94a3b8" stroke-width="4"/>${rc(-66,-130,132,260,'#13203f',0,{r:14})}${inner}</g>`;
+const card=(id)=>`<g id="${id}">${rc(-150,-95,300,190,'#f1f5f9','#94a3b8',{r:14})}${rc(-150,-95,300,36,'#2563eb',0,{r:14})}${tx(-132,-69,'COLLEGE ID CARD',{s:15,a:'start',c:'#fff'})}${rc(-130,-44,70,70,'#cbd5e1',0,{r:6})}${tx(-45,-24,'Prakash Musmade',{s:17,a:'start',c:'#0f172a'})}${bc(-130,36,34,'#0f172a')}${tx(0,86,'23AIFT1121177',{s:15,c:'#0f172a',m:1})}</g>`;
+const dash=(i,n0=12)=>`${rc(-228,-138,456,26,'#fff',0,{r:0})}${tx(-214,-121,'ATTENDANCE SYSTEM',{s:11,a:'start',c:'#111',m:1})}${tx(-212,-84,'Live Dashboard · refresh 2s',{s:15,a:'start',c:'#111'})}
+${rc(-212,-70,132,50,'#fff','#ddd',{r:8})}${tx(-204,-54,'PRESENT',{s:10,a:'start',c:'#666',m:1})}${tx(-204,-28,n0,{s:22,a:'start',c:'#16a34a',id:i+'n0'})}${tx(-204,-28,n0+1,{s:22,a:'start',c:'#16a34a',id:i+'n1',o:0})}
+${rc(-70,-70,132,50,'#fff','#ddd',{r:8})}${tx(-62,-54,'ABSENT',{s:10,a:'start',c:'#666',m:1})}${tx(-62,-28,'31',{s:22,a:'start',c:'#dc2626'})}${rc(72,-70,132,50,'#fff','#ddd',{r:8})}${tx(80,-54,'CLASS AVG',{s:10,a:'start',c:'#666',m:1})}${tx(80,-28,'44%',{s:22,a:'start',c:'#111'})}
+${rc(-212,-6,424,50,'#f3f4f6','#ddd',{r:6,id:i+'row'})}${tx(-200,16,'Prakash Musmade',{s:15,a:'start',c:'#111'})}${tx(-200,34,'23AIFT1121177',{s:11,a:'start',c:'#666',m:1})}
+${rc(100,8,100,26,'#fecaca',0,{r:13,id:i+'ab'})}${tx(150,27,'ABSENT',{s:13,c:'#b91c1c',id:i+'abt'})}${rc(100,8,100,26,'#bbf7d0',0,{r:13,id:i+'pr',o:0})}${tx(150,27,'PRESENT',{s:13,c:'#15803d',id:i+'prt',o:0})}
+${rc(-212,52,424,38,'#fff','#e5e7eb',{r:6})}${tx(-200,76,'Sneha Patil',{s:14,a:'start',c:'#111'})}${rc(100,60,100,22,'#fecaca',0,{r:11})}${tx(150,76,'ABSENT',{s:12,c:'#b91c1c'})}${tx(0,118,'● fetch(\'/data\') every 2 s',{s:12,c:'#0e7490',m:1})}`;
+const laptop=(id,inner)=>`<g id="${id}"><rect x="-240" y="-150" width="480" height="300" rx="14" fill="#0b1224" stroke="#94a3b8" stroke-width="5"/><rect x="-228" y="-138" width="456" height="276" rx="6" fill="#efece7"/>${inner}<path d="M-290 160H290L260 190H-260Z" fill="#334155"/></g>`;
+const sheetRow=(y,a,b,c,d,f='#fff',tc='#222',id='')=>`<g ${id?`id="${id}"`:''}>${rc(0,y,440,34,f,'#cbd5e1',{r:0})}${tx(8,y+23,a,{s:14,a:'start',c:tc,m:1})}${tx(100,y+23,b,{s:14,a:'start',c:tc})}${tx(240,y+23,c,{s:14,a:'start',c:tc,m:1})}${tx(372,y+23,d,{s:14,a:'start',c:tc,w:800})}</g>`;
+const T=[0,8,20,33,48,62,80,95,105],S={};
+const CAP=[[0,'Traditional attendance: slow, manual, error-prone'],[3.5,'The paper register becomes a digital interface'],[8.5,'An ESP32 microcontroller is the brain of the system'],[12,'LED and active buzzer give instant physical feedback'],[16,'ESP32 joins the local Wi-Fi and runs a web server'],[20.5,'Step 1 · Student presents the ID card'],[23,'The phone camera detects the barcode'],[28,'Roll number is sent to the ESP32 over Wi-Fi'],[33.5,'Step 1 · ESP32 receives the HTTP request'],[35.5,'Step 2 · Validates roll no. against its in-memory student list'],[37.5,'Step 3 · Checks if already marked present this session'],[40,'Valid + new → PRESENT · LED lights, buzzer beeps'],[44,'Unknown ID or duplicate → rejected, never marked twice'],[48.5,'The record now splits into two independent paths'],[50,'Path A · A background FreeRTOS task syncs to the cloud'],[54.5,'Apps Script appends a new row to Google Sheets'],[56,'Path B · Laptop on same Wi-Fi requests GET /data'],[58.5,'ESP32 answers with JSON, served from its own memory'],[60.5,'Dashboard polls every 2 s – row flips to PRESENT'],[62.5,'Analytics run in the browser – no cloud needed'],[70.5,'Linear regression predicts end-of-semester attendance'],[76,'Faculty can spot students heading below 75%'],[80.5,'The complete system flow'],[95.5,'']];
+/* ---------- SCENE 1 ---------- */
+S[1]=`<g id="c1"><rect y="800" width="1920" height="280" fill="#0d1730"/>${rc(260,130,1400,380,'#10203f','#1e3a6e',{sw:4})}${tx(960,330,'CLASS 6B · ATTENDANCE',{s:34,c:'#2a4a80'})}
+${rc(1000,700,640,40,'#1d2b4d',0,{r:6})}<circle cx="1120" cy="560" r="44" fill="#f1c9a5"/>${rc(1070,610,100,130,'#3b82f6',0,{r:24})}
+<g id="reg">${rc(1250,640,300,60,'#f8fafc','#94a3b8',{r:4})}${[0,1,2,3].map(i=>`<line x1="1265" x2="1535" y1="${655+i*13}" y2="${655+i*13}" stroke="#94a3b8"/>`).join('')}<line id="pen" x1="1180" y1="640" x2="1260" y2="660" stroke="#e2e8f0" stroke-width="8" stroke-linecap="round"/></g>
+${[0,1,2,3,4].map(i=>`<g id="st${i}"><circle r="28" fill="#f1c9a5"/>${rc(-26,34,52,96,['#22d3ee','#a78bfa','#f472b6','#fbbf24','#34d399'][i],0,{r:20})}</g>`).join('')}</g>
+<g id="dg" opacity="0"><g transform="translate(960,560)">${rc(-380,-210,760,420,'#0b1730','#22d3ee',{sw:3,r:20})}${tx(-350,-165,'ATTENDANCE · LIVE',{s:26,a:'start',c:'#22d3ee',m:1})}${[0,1,2,3].map(i=>rc(-350,-120+i*80,700,60,'#13234a',0,{r:10})+tx(-320,-82+i*80,['Prakash Musmade','Rahul Sharma','Sneha Patil','Amit Verma'][i],{s:26,a:'start'})+rc(190,-108+i*80,140,36,i==2?'#7f1d1d':'#14532d',0,{r:18})+tx(260,-82+i*80,i==2?'ABSENT':'PRESENT',{s:20,c:i==2?'#fca5a5':'#86efac'})).join('')}</g></g>
+${tx(960,150,'WHAT IF ATTENDANCE COULD BE MARKED INSTANTLY?',{s:56,id:'q1'})}
+<g id="tt">${tx(960,470,'IoT-Based Barcode Attendance System',{s:92,c:'#fff'})}${tx(960,550,'ESP32  |  HTTP Communication  |  Google Sheets  |  ML Analytics',{s:34,c:'#22d3ee',w:600})}<rect x="560" y="500" width="800" height="3" fill="#22d3ee" filter="url(#gl)"/></g>`;
+/* ---------- SCENE 2 ---------- */
+S[2]=`${tx(960,120,'ESP32 – THE BRAIN OF THE SYSTEM',{s:60,id:'h2'})}
+<g id="bb">${rc(560,380,800,330,'#e5e9f0','#94a3b8',{r:18})}${[0,1].map(r=>[...Array(32)].map((_,i)=>`<circle cx="${590+i*24}" cy="${420+r*20}" r="3" fill="#94a3b8"/><circle cx="${590+i*24}" cy="${650+r*20}" r="3" fill="#94a3b8"/>`).join('')).join('')}</g>
+<g transform="translate(960,520)">${esp('e2')}</g>
+<g id="wires" fill="none" stroke-width="6" stroke-linecap="round"><path d="M862 626C862 690 690 640 690 700" stroke="#22c55e"/><path d="M898 626C898 720 1190 650 1190 700" stroke="#fbbf24"/><path d="M1042 626C1042 680 800 760 750 760" stroke="#a78bfa"/></g>
+<g id="ld" transform="translate(690,730)"><circle r="30" fill="#14532d" stroke="#86efac" stroke-width="4"/><rect x="-24" y="26" width="48" height="26" fill="#14532d"/></g>${tx(690,810,'LED',{s:28,c:'#86efac',id:'t2a'})}${tx(690,845,'GPIO 16 + 220Ω',{s:20,c:'#94a3b8',m:1})}
+<g id="bz" transform="translate(1190,730)"><circle r="42" fill="#0b0f1a" stroke="#475569" stroke-width="5"/><circle r="12" fill="#334155"/></g>${tx(1190,810,'ACTIVE BUZZER',{s:28,c:'#fbbf24'})}${tx(1190,845,'GPIO 2',{s:20,c:'#94a3b8',m:1})}
+${tx(960,365,'BREADBOARD + JUMPER WIRES',{s:22,c:'#94a3b8'})}
+<g id="ph2" transform="translate(260,350)">${phone('p2')}${tx(0,-6,'SCAN',{s:26,c:'#22d3ee'})}${tx(0,28,'|||| ||| ||||',{s:20,c:'#fff',m:1})}</g>${tx(260,560,'SMARTPHONE SCANNER APP',{s:22,c:'#22d3ee'})}
+<g id="cd2" transform="translate(260,760)">${card('c2')}</g>${tx(260,900,'STUDENT ID CARD · BARCODE',{s:22,c:'#94a3b8'})}
+<g id="lp2" transform="translate(1660,430)">${laptop('l2',dash('b'))}</g>${tx(1660,670,'LAPTOP · SAME WI-FI',{s:22,c:'#94a3b8'})}
+<path id="la" d="M960 400L960 300" stroke="#22d3ee" stroke-width="3"/>${tx(960,250,'ESP32 Dev Board · Wi-Fi + HTTP web server',{s:28,c:'#22d3ee',w:600})}`;
+/* ---------- SCENE 3 ---------- */
+S[3]=`<g id="g3"><circle cx="200" cy="470" r="44" fill="#f1c9a5"/>${rc(150,525,100,220,'#6366f1',0,{r:30})}<line x1="235" y1="590" x2="400" y2="635" stroke="#6366f1" stroke-width="26" stroke-linecap="round"/>
+<g transform="translate(540,640)">${card('c3')}${rc(-130,30,260,46,'none','#22c55e',{r:4,sw:4,id:'bd',o:0})}</g>
+<polygon id="cone" points="780,520 680,600 680,690" fill="#22d3ee" opacity="0"/>
+<g transform="translate(880,520)">${phone('p3',`<g id="vf">${bc(-50,-20,40,'#fff')}<rect id="ls" x="-56" y="-24" width="112" height="3" fill="#ef4444" filter="url(#gl)"/></g>${tx(0,75,'✓ 23AIFT1121177',{s:13,c:'#22c55e',m:1,id:'ok3',o:0})}`)}</g></g>
+${esp('e3',1.2).replace('<g id="e3">','<g id="e3" transform="translate(1650,560)">')}${tx(1650,730,'ESP32 · HTTP SERVER',{s:26,c:'#22d3ee'})}
+${tx(880,280,'23AIFT1121177',{s:50,c:'#22d3ee',m:1,id:'id3'})}${tx(880,330,'BARCODE DETECTED',{s:24,c:'#22c55e',id:'det'})}
+<g id="rq3">${rc(960,340,640,84,'#0b1730','#22d3ee',{r:14})}${tx(1280,395,'GET /scan?barcode=23AIFT1121177',{s:28,c:'#67e8f9',m:1})}${tx(1280,310,'HTTP GET REQUEST',{s:36,c:'#fff'})}</g>
+${tx(1280,860,'Student barcode data is transmitted over the local Wi-Fi network to the ESP32.',{s:28,c:'#cbd5e1',w:500,id:'ex3'})}`;
+/* ---------- SCENE 4 ---------- */
+const stp=(x,n,a,b)=>`<g class="stp">${rc(x,250,440,150,'#0f1f42','#3b82f6',{r:16})}${tx(x+24,295,'STEP '+n,{s:20,a:'start',c:'#60a5fa',m:1})}${tx(x+24,340,a,{s:32,a:'start'})}${tx(x+24,380,b,{s:19,a:'start',c:'#94a3b8',w:500})}</g>`;
+S[4]=`${rc(120,170,1680,590,'#0b1630','#22d3ee',{r:24,sw:3})}${tx(160,215,'INSIDE THE ESP32 · FIRMWARE LOGIC',{s:24,a:'start',c:'#22d3ee',m:1})}
+${stp(190,1,'RECEIVE DATA','HTTP GET /scan → barcode param')}${stp(740,2,'VALIDATE STUDENT','barcode ∈ in-memory student list?')}${stp(1290,3,'DUPLICATE CHECK','already present this session?')}
+<path class="ar" d="M630 325H740M1180 325H1290" stroke="#22d3ee" stroke-width="4" marker-end="url(#ah)"/>
+<path id="pa" class="fl" d="M1510 400C1510 480 515 470 515 560" fill="none" stroke="#22c55e" stroke-width="4" opacity="0"/><path id="pe" class="fl" d="M1510 400C1510 480 1265 480 1265 560" fill="none" stroke="#f97316" stroke-width="4" opacity="0"/>
+<g id="sx">${rc(250,560,530,150,'#0f2a1d','#22c55e',{r:16,sw:3})}${tx(280,605,'SUCCESS PATH',{s:26,a:'start',c:'#4ade80'})}${tx(280,645,'✓ valid student   ✓ not scanned before',{s:21,a:'start',c:'#bbf7d0',w:500})}${tx(280,682,'→ mark PRESENT in memory',{s:21,a:'start',c:'#bbf7d0',w:500})}</g>
+<g id="ex">${rc(1000,560,530,150,'#2a1508','#f97316',{r:16,sw:3})}${tx(1030,605,'ERROR PATH',{s:26,a:'start',c:'#fb923c'})}${tx(1030,645,'✗ unknown student  or  ✗ duplicate scan',{s:21,a:'start',c:'#fed7aa',w:500})}${tx(1030,682,'→ NOT marked again · show error',{s:21,a:'start',c:'#fed7aa',w:500})}</g>
+<path id="wl" d="M515 710V800H700V868M515 800H1100V868" fill="none" stroke="#22c55e" stroke-width="5" opacity="0"/>
+<circle id="lg" cx="700" cy="905" r="60" fill="#22c55e" opacity="0" filter="url(#gl)"/><circle id="led" cx="700" cy="905" r="30" fill="#14532d" stroke="#86efac" stroke-width="4"/>${tx(700,990,'LED · GPIO 16',{s:22,c:'#86efac'})}
+<circle cx="1100" cy="905" r="40" fill="#0b0f1a" stroke="#475569" stroke-width="5"/><circle cx="1100" cy="905" r="11" fill="#334155"/>${[60,85,110].map(r=>`<path class="bw" opacity="0" d="M${1100+r*.5} ${905-r*.8}A${r} ${r} 0 0 1 ${1100+r*.5} ${905+r*.8}" fill="none" stroke="#fbbf24" stroke-width="5" stroke-linecap="round"/>`).join('')}${tx(1100,990,'BUZZER · GPIO 2',{s:22,c:'#fbbf24'})}
+<g id="ok4" opacity="0">${rc(1300,860,520,90,'#14532d','#22c55e',{r:45,sw:3})}<path d="M1340 905l22 22 40-46" stroke="#4ade80" stroke-width="9" fill="none" stroke-linecap="round"/>${tx(1620,893,'ATTENDANCE MARKED',{s:25,c:'#bbf7d0'})}${tx(1620,926,'SUCCESSFULLY!',{s:25,c:'#bbf7d0'})}</g>
+<g id="er4" opacity="0">${rc(1300,860,520,90,'#431407','#f97316',{r:45,sw:3})}${tx(1560,893,'DUPLICATE SCAN · IGNORED',{s:23,c:'#fed7aa'})}${tx(1560,926,'already marked present',{s:20,c:'#fdba74',w:500})}<path d="M1345 890l36 36M1381 890l-36 36" stroke="#fb923c" stroke-width="8" stroke-linecap="round"/></g>`;
+/* ---------- SCENE 5 ---------- */
+S[5]=`${tx(90,110,'PATH A · CLOUD SYNC (ASYNC, BACKGROUND TASK)',{s:30,a:'start',c:'#fb923c'})}${tx(90,690,'PATH B · LIVE LAPTOP DASHBOARD (LOCAL WI-FI)',{s:30,a:'start',c:'#22d3ee'})}
+<g transform="translate(260,540)">${esp('e5',.95).replace('<g id="e5">','<g id="e5">')}</g>${tx(260,690,'ESP32',{s:22,c:'#94a3b8'})}
+<g id="bg5">${rc(60,338,400,56,'#2a1508','#f97316',{r:12})}${tx(260,375,'FreeRTOS task → non-blocking',{s:22,c:'#fed7aa',w:600})}</g>
+${[['rt',540,'WI-FI ROUTER'],['cl',840,'INTERNET'],['as',1140,'GOOGLE APPS SCRIPT']].map(a=>`<g class="n5">${rc(a[1]-90,215,180,70,'#10203f','#fb923c',{r:14})}${tx(a[1],257,a[2],{s:a[0]=='as'?15:18,c:'#fff'})}</g>`).join('')}
+<path class="fl" d="M410 500L450 250H450M630 250H750M930 250H1050M1230 250H1420" fill="none" stroke="#fb923c" stroke-width="3" opacity=".7"/>
+${tx(1010,165,'HTTPS GET  /exec?roll=23AIFT1121177&status=PRESENT',{s:23,c:'#fdba74',m:1,id:'rq5'})}
+<g id="sh" transform="translate(1420,120)">${rc(0,0,440,30,'#188038',0,{r:6})}${tx(10,21,'Attendance Records – Google Sheets',{s:14,a:'start',w:600})}${sheetRow(30,'Timestamp','Student Name','Roll Number','Status','#e2e8f0','#0f172a')}${sheetRow(64,'15-11-2026','Rahul Sharma','23AIFT1121102','PRESENT')}${sheetRow(98,'15-11-2026','Amit Verma','23AIFT1121140','PRESENT').replace(/#222/g,'#222')}${sheetRow(132,'15-11-2026','Prakash Musmade','23AIFT1121177','PRESENT','#bbf7d0','#14532d','nr')}${tx(220,205,'',{})}</g>
+${tx(1640,360,'CLOUD ATTENDANCE RECORD SAVED',{s:24,c:'#4ade80',id:'sv5'})}
+<g id="rt2">${rc(550,910,100,60,'#10203f','#22d3ee',{r:12})}${tx(600,950,'WI-FI',{s:20})}</g>
+<g id="jb">${rc(780,700,420,150,'#0b1730','#22d3ee',{r:14})}${tx(800,740,'{',{s:24,a:'start',m:1,c:'#67e8f9'})}${tx(830,775,'"rollNo": "23AIFT1121177",',{s:22,a:'start',m:1,c:'#fff'})}${tx(830,805,'"name": "Prakash Musmade",',{s:22,a:'start',m:1,c:'#fff'})}${tx(830,835,'"present": true',{s:22,a:'start',m:1,c:'#4ade80'})}${tx(800,845,'',{})}</g>
+<g transform="translate(1590,810)">${laptop('l5',dash('d'))}</g>
+${tx(1010,960,'GET /data  →  JSON response',{s:24,c:'#67e8f9',m:1,id:'gd'})}
+<g id="rb">${rc(1290,990,600,56,'#0e3a4a','#22d3ee',{r:28})}${tx(1590,1028,'REAL-TIME DASHBOARD UPDATE',{s:26,c:'#67e8f9'})}</g>`;
+/* ---------- SCENE 6 ---------- */
+const reg=(()=>{const y=[88,85,86,80,78,79,74,72,73,69],n=10,mx=5.5,my=y.reduce((a,b)=>a+b)/n;let sx=0,sy=0;y.forEach((v,i)=>{sx+=(i+1-mx)*(v-my);sy+=(i+1-mx)**2});const m=sx/sy,b=my-m*mx;return{y,m,b}})();
+const X=w=>200+(w-1)*58,Y=p=>800-p*5.5,pv=[5,8,12,15,20,25,32,38,45,55,64,72,85,95],bcol=p=>p<35?'#c0392b':p<75?'#d97706':'#2e8b57';
+S[6]=`<g id="p1">${tx(960,110,'ANALYTICS & ML INSIGHTS',{s:56})}
+${[['CLASS AVG ATTENDANCE','44%','#fff'],['BELOW 35% · AT RISK','18','#ef4444'],['35% – 75% · NEEDS WORK','15','#f59e0b'],['ABOVE 75% · ON TRACK','10','#22c55e']].map((a,i)=>`<g class="sc">${rc(100+i*430,160,400,130,'#13213f','#27407a',{r:16})}${tx(124+i*430,200,a[0],{s:16,a:'start',c:'#94a3b8',m:1})}${tx(124+i*430,262,a[1],{s:62,a:'start',c:a[2]})}</g>`).join('')}
+<g class="pn">${rc(100,330,500,500,'#13213f','#27407a',{r:20})}${tx(130,380,'Attendance Distribution',{s:26,a:'start'})}
+${[['#c0392b',41.9,0],['#d97706',34.9,-41.9],['#2e8b57',23.3,-76.8]].map(a=>`<circle class="dn" cx="350" cy="600" r="110" fill="none" stroke="${a[0]}" stroke-width="50" pathLength="100" stroke-dasharray="${a[1]} ${100-a[1]}" stroke-dashoffset="${a[2]}" transform="rotate(-90 350 600)"/>`).join('')}${tx(350,615,'43',{s:50})}${tx(350,780,'students in 3 bands',{s:20,c:'#94a3b8',w:500})}</g>
+<g class="pn">${rc(630,330,660,500,'#13213f','#27407a',{r:20})}${tx(660,380,'Attendance % per Student',{s:26,a:'start'})}<line x1="660" x2="1260" y1="${Y(35)+300}" y2="${Y(35)+300}" stroke="#ef4444" stroke-dasharray="8 6"/>${pv.map((p,i)=>`<rect class="br" x="${665+i*42}" y="${790-p*3.8}" width="30" height="${p*3.8}" fill="${bcol(p)}" rx="3"/>`).join('')}</g>
+<g class="pn">${rc(1320,330,500,500,'#13213f','#27407a',{r:20})}${tx(1350,380,'Status Overview',{s:26,a:'start'})}<circle cx="1570" cy="610" r="110" fill="#334155"/><path class="dn2" d="M1570 610L1570 500A110 110 0 0 1 1623 513.7Z" fill="#22c55e"/>${tx(1570,780,'Present vs Absent today',{s:20,c:'#94a3b8',w:500})}</g></g>
+<g id="p2" opacity="0">${tx(650,130,'LINEAR REGRESSION',{s:64,c:'#22d3ee'})}${tx(650,190,'Predicting End-Semester Attendance',{s:30,c:'#cbd5e1',w:500})}
+<line x1="200" y1="${Y(0)}" x2="1100" y2="${Y(0)}" stroke="#64748b" stroke-width="3"/><line x1="200" y1="${Y(100)}" x2="200" y2="${Y(0)}" stroke="#64748b" stroke-width="3"/>
+<line x1="200" x2="1100" y1="${Y(75)}" y2="${Y(75)}" stroke="#f59e0b" stroke-dasharray="10 8" stroke-width="2"/>${tx(1100,Y(75)-10,'75% REQUIRED',{s:18,a:'end',c:'#f59e0b',m:1})}${tx(650,Y(0)+50,'WEEK  →  (1…10 recorded, 11…16 predicted)',{s:20,c:'#94a3b8',m:1})}
+${reg.y.map((v,i)=>`<circle class="pt" cx="${X(i+1)}" cy="${Y(v)}" r="9" fill="#60a5fa"/>`).join('')}
+<line id="rl" x1="${X(1)}" y1="${Y(reg.m+reg.b)}" x2="${X(10)}" y2="${Y(reg.m*10+reg.b)}" stroke="#22d3ee" stroke-width="5"/><line id="pl" x1="${X(10)}" y1="${Y(reg.m*10+reg.b)}" x2="${X(16)}" y2="${Y(reg.m*16+reg.b)}" stroke="#ef4444" stroke-width="5" stroke-dasharray="12 8"/>
+<circle id="pe6" cx="${X(16)}" cy="${Y(reg.m*16+reg.b)}" r="12" fill="#ef4444" filter="url(#gl)"/>${tx(X(16),Y(reg.m*16+reg.b)+44,'Predicted: '+(reg.m*16+reg.b).toFixed(0)+'%',{s:26,c:'#fca5a5',id:'pt6'})}
+${[['LOW RISK','≥ 75%','#22c55e'],['MEDIUM RISK','35 – 75%','#eab308'],['HIGH RISK','< 35%','#ef4444']].map((a,i)=>`<g class="rk">${rc(1230,250+i*86,590,70,'#13213f',a[2],{r:14,sw:3})}<circle cx="1270" cy="${285+i*86}" r="14" fill="${a[2]}" filter="url(#gl)"/>${tx(1300,296+i*86,a[0],{s:28,a:'start',c:a[2]})}${tx(1790,296+i*86,a[1],{s:24,a:'end',c:'#cbd5e1',m:1})}</g>`).join('')}
+${[['Mohit Shinde','11% → 26%','HIGH','#ef4444'],['Deepak Rajan','46% → 61%','MEDIUM','#eab308'],['Prakash Musmade','82% → 88%','LOW','#22c55e']].map((a,i)=>`<g class="rk">${rc(1230,550+i*70,590,56,'#0f1b36','#27407a',{r:10})}${tx(1250,586+i*70,a[0],{s:22,a:'start'})}${tx(1560,586+i*70,a[1],{s:20,m:1,c:'#cbd5e1'})}${tx(1800,586+i*70,a[2],{s:20,a:'end',c:a[3]})}</g>`).join('')}
+${tx(1525,520,'RISK CLASSIFICATION · current → predicted end-sem',{s:19,c:'#94a3b8',m:1})}</g>`;
+/* ---------- SCENE 7 ---------- */
+const NODES=[[230,170,'STUDENT','','#22d3ee'],[620,170,'BARCODE ID CARD','','#22d3ee'],[1010,170,'MOBILE SCANNER','phone camera app','#22d3ee'],[1400,170,'ESP32 MICROCONTROLLER','local HTTP server','#3b82f6'],[1400,370,'VALIDATION + DUPLICATE','in-memory student DB','#3b82f6'],[1010,370,'LED + BUZZER','physical feedback','#22c55e'],
+[230,570,'FreeRTOS TASK','background · async','#fb923c'],[620,570,'HTTPS','','#fb923c'],[1010,570,'GOOGLE APPS SCRIPT','webhook','#fb923c'],[1400,570,'GOOGLE SHEETS','cloud record','#22c55e'],
+[230,790,'LAPTOP BROWSER','same Wi-Fi','#22d3ee'],[620,790,'ESP32 · JSON','response to /data','#3b82f6'],[1010,790,'LIVE DASHBOARD','fetch every 2 s','#22d3ee'],[1400,790,'MACHINE LEARNING','linear regression','#a78bfa'],[1400,950,'PREDICTION + RISK','faculty insight','#ef4444']];
+const ARR=[[0,1],[1,2],[2,3,'HTTP GET /scan'],[3,4],[4,5],[6,7],[7,8],[8,9],[10,11,'GET /data'],[11,12],[12,13],[13,14]];
+const P7=n=>NODES[n];
+S[7]=`${tx(960,70,'COMPLETE SYSTEM ARCHITECTURE',{s:34,c:'#64748b',m:1})}${tx(80,515,'BRANCH A · CLOUD',{s:20,a:'start',c:'#fb923c',m:1})}${tx(80,735,'BRANCH B · LOCAL DASHBOARD',{s:20,a:'start',c:'#22d3ee',m:1})}
+${NODES.map((n,i)=>`<g class="nd" id="nd${i}">${rc(n[0]-150,n[1]-45,300,90,'#0f1b36',n[4],{r:16,sw:3})}${tx(n[0],n[1]+(n[3]?-2:10),n[2],{s:n[2].length>20?19:23})}${n[3]?tx(n[0],n[1]+26,n[3],{s:15,c:'#94a3b8',w:500}):''}</g>`).join('')}
+${ARR.map((a,i)=>{const A=P7(a[0]),B=P7(a[1]);return`<g class="ar7"><line x1="${A[0]+(B[0]>A[0]?150:0)}" y1="${A[1]+(B[1]>A[1]?45:0)}" x2="${B[0]-(B[0]>A[0]?150:0)}" y2="${B[1]-(B[1]>A[1]?45:0)}" stroke="#22d3ee" stroke-width="4" marker-end="url(#ah)" class="fl"/>${a[2]?tx((A[0]+B[0])/2,(A[1]+B[1])/2+ (A[1]==B[1]?-62:0)+ (A[1]==B[1]?0:0),a[2],{s:17,c:'#67e8f9',m:1}):''}</g>`}).join('')}
+<path class="ar7 fl" d="M1400 415V500H230V525" fill="none" stroke="#fb923c" stroke-width="4" marker-end="url(#ah)"/>`;
+/* ---------- SCENE 8 ---------- */
+S[8]=`<g transform="translate(450,560)">${rc(-260,-160,520,320,'#e5e9f0','#94a3b8',{r:20})}${esp('e8',.9)}<circle cx="-170" cy="130" r="18" fill="#22c55e" id="l8" filter="url(#gl)"/><circle cx="170" cy="130" r="20" fill="#0b0f1a" stroke="#475569" stroke-width="4"/></g>${tx(450,790,'IoT HARDWARE · ESP32',{s:24,c:'#94a3b8'})}
+<g transform="translate(1440,540) scale(1.25)">${laptop('l8l',dash('f'))}</g>${tx(1440,850,'LIVE DASHBOARD',{s:24,c:'#94a3b8'})}
+<path id="nw" class="fl" d="M650 500C900 300 1100 300 1200 470" fill="none" stroke="#22d3ee" stroke-width="5" filter="url(#gl)"/>
+${tx(960,130,'SMARTER ATTENDANCE. REAL-TIME MONITORING. INTELLIGENT INSIGHTS.',{s:44,id:'f1'})}
+${tx(960,930,'IoT-Based Barcode Attendance System',{s:64,id:'f2'})}${tx(960,990,'Powered by ESP32, HTTP, Google Sheets & Machine Learning',{s:28,c:'#22d3ee',w:600,id:'f3'})}`;
+for(let i=1;i<=8;i++)$('#s'+i).innerHTML=S[i];
+/* ---------- TIMELINE ---------- */
+for(let i=1;i<=8;i++){const a=T[i-1],b=T[i],s='#s'+i;tl.fromTo(s,{opacity:0,scale:1.04,transformOrigin:'50% 50%'},{opacity:1,scale:1,duration:.7,ease:'power2.out'},a).call(bp,[200,.5,'sawtooth',.025,1400],null,a);if(i<8)tl.to(s,{opacity:0,duration:.6},b-.6);else tl.to(s,{opacity:0,duration:1.5},b-1.5)}
+/* S1 */
+for(let i=0;i<5;i++){gsap.set('#st'+i,{x:-150,y:700});tl.to('#st'+i,{x:340+i*130,duration:2.2+i*.2,ease:'sine.out'},.4)}
+tl.to('#pen',{x:30,y:6,duration:.3,repeat:9,yoyo:true},.5).from('#q1',{opacity:0,y:30,duration:.8},.8).to('#q1',{opacity:0,duration:.5},3.6)
+.to('#reg',{x:-400,y:-100,scale:1.5,svgOrigin:'1400 670',opacity:0,duration:1.2},3.2).to('#dg',{opacity:1,duration:1},3.4).fromTo('#dg',{scale:.7,svgOrigin:'960 560'},{scale:1,svgOrigin:'960 560',duration:1,ease:'back.out'},3.4)
+.to('#c1',{opacity:.12,duration:.8},4.8).to('#dg',{opacity:.1,duration:.8},4.8).from('#tt',{opacity:0,scale:.9,svgOrigin:'960 500',duration:1.2,ease:'power3.out'},5).call(bp,[660,.5,'sine',.06,990],null,5);
+/* S2 */
+const t2=T[1];show('#h2',t2+.4);show('#bb',t2+1,.8,{y:40});show('#e2',t2+1.4,.8,{scale:.8,svgOrigin:'960 520'});show('#wires',t2+2.6,.8,{});show('#ld',t2+3.2);show('#t2a',t2+3.3);show('#bz',t2+3.6);show('#ph2,#cd2',t2+5.5,.8,{x:-80});show('#lp2',t2+7,.8,{x:80});
+tl.from('#la',{opacity:0,duration:.5},t2+4.5);wf('s2',960,430,0,t2+8,3);
+tl.fromTo('#ld circle',{fill:'#14532d'},{fill:'#22c55e',duration:.4,repeat:3,yoyo:true},t2+9);
+/* S3 */
+const t3=T[2];show('#g3',t3+.6,.8,{x:-60});show('#e3',t3+.8,.6,{opacity:0});
+tl.to('#g3',{scale:1.4,svgOrigin:'620 580',duration:1.3,ease:'power2.inOut'},t3+2).to('#cone',{opacity:.18,duration:.5},t3+2.6).fromTo('#ls',{attr:{y:-24}},{attr:{y:16},duration:.5,repeat:5,yoyo:true,ease:'none'},t3+2.6)
+.to('#bd',{opacity:1,duration:.3},t3+5).call(bp,[1800,.14,'square',.05],null,t3+5).from('#det,#id3',{opacity:0,y:20,duration:.5},t3+5).to('#ok3',{opacity:1,duration:.3},t3+5.3).to('#cone',{opacity:0,duration:.3},t3+5.2)
+.to('#g3',{scale:1,duration:1.2,ease:'power2.inOut'},t3+7).from('#rq3',{opacity:0,y:20,duration:.6},t3+8);wf('s3',960,520,90,t3+8,4);pk('s3',[[950,520],[1250,470],[1500,545]],t3+8.2,2.6,'#3b82f6','23AIFT1121177');
+tl.from('#ex3',{opacity:0,duration:.8},t3+9.5).fromTo('#e3 rect:first-child',{stroke:'#fff'},{stroke:'#22d3ee',duration:.8},t3+10.8);
+/* S4 */
+const t4=T[3];tl.from('#s4 rect:first-child,#s4 text:nth-child(2)',{opacity:0,duration:.6},t4+.3);pk('s4',[[60,450],[170,330]],t4+.4,1,'#3b82f6','23AIFT…');
+const sp=$('#s4').querySelectorAll('.stp');sp.forEach((e,i)=>tl.from(e,{opacity:0,x:-40,duration:.6},t4+1.5+i*2).to(e.firstElementChild,{stroke:'#22d3ee',duration:.4},t4+1.9+i*2));
+tl.from('.ar',{opacity:0,duration:.5},t4+3).to('#pa',{opacity:1,duration:.5},t4+6.5).to('#pe',{opacity:1,duration:.5},t4+6.6).from('#sx,#ex',{opacity:0,y:30,duration:.6,stagger:.2},t4+6.8)
+.to('#wl',{opacity:1,duration:.5},t4+8).to('#led',{fill:'#22c55e',duration:.2},t4+8.6).to('#lg',{opacity:.9,duration:.2},t4+8.6).call(bp,[2400,.3,'square',.06],null,t4+8.6).to('#lg',{opacity:.2,duration:.2,repeat:3,yoyo:true},t4+9.3)
+.fromTo('.bw',{opacity:0},{opacity:1,duration:.25,stagger:.12,repeat:3,yoyo:true},t4+8.6).to('#ok4',{opacity:1,duration:.5},t4+9).to('#ok4',{opacity:0,duration:.4},t4+11.2).to('#sx',{opacity:.35,duration:.4},t4+11.2)
+.to('#ex',{scale:1.03,svgOrigin:'1265 635',duration:.3,yoyo:true,repeat:1},t4+11.6).call(bp,[260,.3,'sawtooth',.05],null,t4+11.8).to('#er4',{opacity:1,duration:.5},t4+11.8).to('#led',{fill:'#14532d',duration:.3},t4+11.2).to('#lg',{opacity:0,duration:.3},t4+11.2);
+pk('s4',[[1510,400],[1265,560]],t4+11.2,.5,'#f97316','2nd scan');
+/* S5 */
+const t5=T[4];show('#s5 g:nth-of-type(1)',t5+.5);show('#e5',t5+.5);show('#bg5',t5+1);show('.n5',t5+1.2,.5,{y:-20});tl.from('#sh',{opacity:0,x:60,duration:.7},t5+1.6);tl.from('#rq5',{opacity:0,duration:.5},t5+1.8);
+pk('s5',[[410,500],[540,250],[840,250],[1140,250],[1420,250]],t5+2,4.2,'#fb923c','record');wf('s5',260,450,0,t5+1.8,2);
+tl.to('.n5:last-of-type rect',{fill:'#7c2d12',duration:.4},t5+5.8).from('#nr',{opacity:0,x:-30,duration:.5},t5+6.3).from('#sv5',{opacity:0,scale:.8,svgOrigin:'1640 360',duration:.5},t5+6.6)
+.from('#rt2,#jb,#gd',{opacity:0,duration:.5,stagger:.15},t5+7);
+pk('s5',[[1350,860],[600,940],[420,620]],t5+8,2.2,'#22d3ee','GET /data');pk('s5',[[420,620],[900,760],[1340,830]],t5+10.6,2.4,'#4ade80','JSON');
+tl.from('#jb',{scale:.9,svgOrigin:'990 775',duration:.4},t5+10.4).to('#dab,#dabt',{opacity:0,duration:.3},t5+13).to('#dpr,#dprt',{opacity:1,duration:.3},t5+13).to('#dn0',{opacity:0,duration:.2},t5+13).to('#dn1',{opacity:1,duration:.2},t5+13).fromTo('#drow',{fill:'#bbf7d0'},{fill:'#f3f4f6',duration:1},t5+13).call(bp,[1500,.1,'sine',.05],null,t5+13).from('#rb',{opacity:0,y:20,duration:.5},t5+13.1);
+/* S6 */
+const t6=T[5];tl.from('#p1>text',{opacity:0,duration:.5},t6+.5).from('.sc',{opacity:0,y:20,stagger:.15,duration:.5},t6+.8).from('.pn',{opacity:0,y:30,stagger:.2,duration:.6},t6+1.6)
+.from('.dn',{attr:{'stroke-dasharray':'0 100'},duration:.9,stagger:.4},t6+2.2).from('.br',{attr:{height:0,y:790},stagger:.08,duration:.5},t6+2.4).from('.dn2',{scale:0,svgOrigin:'1570 610',duration:.7},t6+3.5)
+.to('#p1',{opacity:0,duration:.6},t6+7.6).to('#p2',{opacity:1,duration:.6},t6+8).from('#p2 text:nth-of-type(-n+2)',{opacity:0,y:20,duration:.6},t6+8.2).from('.pt',{scale:0,svgOrigin:'0 0',opacity:0,stagger:.2,duration:.3},t6+8.8);
+tl.from('#rl',{attr:{x2:X(1),y2:Y(reg.m+reg.b)},duration:1.2},t6+11).from('#pl',{attr:{x2:X(10),y2:Y(reg.m*10+reg.b)},duration:2,ease:'none'},t6+12.3).from('#pe6,#pt6',{opacity:0,duration:.5},t6+14.2).from('.rk',{opacity:0,x:40,stagger:.2,duration:.5},t6+13);
+/* S7 */
+const t7=T[6];NODES.forEach((n,i)=>{const o=i<6?[0,1,2,3,4.5,6][i]:i<10?[7,7.8,8.6,9.4][i-6]:[11,11.8,12.6,13.4,14][i-10];tl.from('#nd'+i,{opacity:0,scale:.8,svgOrigin:`${n[0]} ${n[1]}`,duration:.45,ease:'back.out'},t7+.7+o*.85/1.0*.7)});
+tl.from('.ar7',{opacity:0,stagger:.35,duration:.5},t7+1.2);
+pk('s7',[[380,170],[470,170]],t7+2.4,.6,'#22d3ee');pk('s7',[[770,170],[860,170]],t7+3,.6,'#22d3ee');pk('s7',[[1160,170],[1250,170]],t7+3.6,.7,'#3b82f6','/scan');pk('s7',[[1400,215],[1400,325]],t7+4.4,.7,'#22c55e');pk('s7',[[1400,415],[1400,500],[230,500],[230,525]],t7+5.6,2.2,'#fb923c');pk('s7',[[380,570],[1250,570]],t7+8,3,'#fb923c');pk('s7',[[380,790],[470,790]],t7+9.5,.7,'#22d3ee','GET /data');pk('s7',[[770,790],[860,790]],t7+10.5,.7,'#4ade80','JSON');pk('s7',[[1160,790],[1250,790],[1400,835],[1400,905]],t7+11.5,1.8,'#a78bfa');
+/* S8 */
+const t8=T[7];tl.from('#s8 g',{opacity:0,duration:.8,stagger:.3},t8+.4);pk('s8',[[650,500],[900,330],[1100,330],[1250,480]],t8+1.5,2,'#22d3ee');pk('s8',[[650,500],[900,330],[1100,330],[1250,480]],t8+3.5,2,'#4ade80');tl.from('#f1',{opacity:0,y:-20,duration:1},t8+2).from('#f2',{opacity:0,y:20,duration:1},t8+5).from('#f3',{opacity:0,duration:1},t8+5.8).fromTo('#l8',{opacity:.2},{opacity:1,duration:.4,repeat:6,yoyo:true},t8+1);wf('s8',450,420,0,t8+1,3);
+tl.to('#cap',{opacity:0,duration:.8},T[8]-1.8);tl.set('#cap',{opacity:1},0);
+/* ---------- player ---------- */
+const cap=$('#cap'),sl=$('#sl'),D=tl.duration(),f=t=>Math.floor(t/60)+':'+String(Math.floor(t%60)).padStart(2,'0');
+function upd(){const t=tl.time();let c='';for(const[a,b]of CAP)if(t>=a)c=b;cap.textContent=c;sl.value=t/D*1000;$('#tm').textContent=f(t)+' / '+f(D)}
+function fit(){const k=Math.min(innerWidth/1920,(innerHeight-56)/1080);$('#st').style.transform=`scale(${k})`}
+addEventListener('resize',fit);fit();
+$('#go button').onclick=()=>{$('#go').remove();initAudio();tl.play();aud()};
+$('#pp').onclick=()=>{if(tl.progress()>=1){tl.restart();$('#pp').textContent='Pause'}else if(tl.paused()){tl.play();$('#pp').textContent='Pause'}else{tl.pause();$('#pp').textContent='Play'}aud()};
+$('#sn').onclick=()=>{snd=!snd;$('#sn').textContent='Sound: '+(snd?'on':'off');aud()};
+sl.oninput=()=>{tl.pause();tl.time(sl.value/1000*D);$('#pp').textContent='Play';aud()};
+tl.eventCallback('onComplete',()=>{$('#pp').textContent='Replay';aud()});
+</script></body></html>
